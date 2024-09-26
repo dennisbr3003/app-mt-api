@@ -1,0 +1,10 @@
+# Dependency directories
+node_modules/
+logs/
+# Optional npm cache directory
+.npm
+# dotenv environment variables file
+.env
+# workspace config
+app-mt-api.code-workspace
+temp/
