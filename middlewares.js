@@ -17,6 +17,9 @@ initMiddleWares()
 
 // decrypt token
 const decryptToken = async(token, req) => {
+
+    console.log('middleware', token)
+
     // try{        
     //     let params = []
     //     const cryptr = new Cryptr(process.env.CPWD)

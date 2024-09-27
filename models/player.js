@@ -23,7 +23,7 @@ const playerSchema = new Schema({
         required: false,
         default: "EN"
     }
-}, { timestamps: true })
+}, { timestamps: true, versionKey: false })
 
 // be ware of the naming convention here. Mongoose will pluralise this and use it as the collection name in de database!! (Player -> Players)
 const Player = mongoose.model('Player', playerSchema)

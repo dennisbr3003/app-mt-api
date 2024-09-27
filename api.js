@@ -51,6 +51,16 @@ app.delete('/player/:deviceId?', async (req, res) => {
     res.status(404).json({type: '404', message: 'resource could not be found' })
 })
 
+app.post('/player', async (req, res) => {
+    try{
+        const result = await entity.upsertPlayer(req.body)
+        res.status(200).json(result)
+        return
+    } catch(error){
+        res.status(error.type).json({ type: error.type, message: error.message })
+        return
+    }
+})
 
 app.use(async (req, res) => {
     res.status(500).json({type: '500', message: 'unknown or erroneous request' })
