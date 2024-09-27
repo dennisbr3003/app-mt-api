@@ -18,7 +18,7 @@ const appSchema = new Schema({
         type: Boolean,
         required: true
     },    
-}, { timestamps: true })
+}, { timestamps: true, versionKey: false })
 
 // be ware of the naming convention here. Mongoose will pluralise this and use it as the collection name in de database!! (App -> Apps)
 const App = mongoose.model('App', appSchema)

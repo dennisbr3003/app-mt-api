@@ -3,7 +3,8 @@ const Log = require('../classes/Log')
 const Player = require('../models/player')
 const App = require('../models/app')
 
-const lib = require('../lib/uuid')
+const lib = require('../lib/base64')
+const { response } = require('express')
 
 require('dotenv').config()
 
@@ -49,11 +50,11 @@ class Entity {
         return await query.findOne() // app object is returned
     }    
 
-    async updatePlayer(msg) {
-        const filter = { deviceId: msg.deviceId } // find by device id
-        const update = { displayName: msg.name, email: msg.email, language: msg.language} // update the fields
-        const player = await Player.findOneAndUpdate(filter, update)
-        return player
+    async upsertPlayer(player) {
+        const filter = { deviceId: player.deviceId } // find by device id
+        const update = { displayName: player.displayName, callSign: player.callSign, email: player.email, language: player.language} // update the fields
+        const response = await Player.findOneAndUpdate(filter, update, { new: true, upsert: true }) // new sends back the updated 'record'
+        return response
     }
 
 }
