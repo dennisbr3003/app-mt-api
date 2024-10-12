@@ -17,10 +17,10 @@ const initMiddleWares = async () => {
 initMiddleWares()
 
 // decrypt token
-const decryptToken = async(token, req) => {
+const decryptToken = async(req) => {
     try{        
-        let hash = await encodeHmac256(process.env.CAPP, process.env.CPWD, true)
-        if(hash!==token) {
+        let hash = await encodeHmac256(`${process.env.CAPP}.${req.headers.device}`, process.env.CPWD, true)
+        if(hash!==req.headers.token) {
             throw {type: 401, message: 'Token does not match - Unauthorized'}       
         }    
         let app = await entity.getApp(process.env.CAPP)    
@@ -32,7 +32,7 @@ const decryptToken = async(token, req) => {
             if(req.method==='DELETE'&&!app.delete) throw {type: 401, message: 'Delete not allowed - Unauthorized'}      
         }
     } catch(error){
-        throw error
+        throw error   
     }
 }
 
@@ -41,7 +41,7 @@ module.exports = [
     helmet(),
     async (req, res, next) => {
         try{
-            await decryptToken(req.headers.token, req)
+            await decryptToken(req)
         } catch (error) {
             res.status(error.type).json({type: error.type, message: error.message })
             return

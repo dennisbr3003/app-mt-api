@@ -24,42 +24,34 @@ console.log('ready to receive requests on ', `http://localhost:${process.env.POR
 
 initApp()
 
-app.get('/player/:deviceId?', async (req, res) => {
-    const execute = !!req.params.deviceId ?? false
-    if(execute) {
-        const player = await entity.getPlayer(req.params.deviceId)
-        if(player!==null){
-            res.status(200).json(player)
-            return
-        } 
-    }    
-    res.status(404).json({type: '404', message: 'resource could not be found' })
+app.get('/player', async (req, res) => {
+    try{
+        const player = await entity.getPlayer(req.headers.device)
+        res.status(200).json(player)
+    } catch(error) {
+        res.status(error.type).json({ type: error.type, message: error.message })
+    }
+    return
 })
 
-app.delete('/player/:deviceId?', async (req, res) => {
-    const execute = !!req.params.deviceId ?? false
-    if(execute) {
-        try{
-            const result = await entity.deletePlayer(req.params.deviceId)
-            res.status(200).json(result)
-            return
-        } catch(error){
-            res.status(error.type).json({ type: error.type, message: error.message })
-            return
-        }
-    }    
-    res.status(404).json({type: '404', message: 'resource could not be found' })
+app.delete('/player', async (req, res) => {
+    try{
+        const result = await entity.deletePlayer(req.headers.device)
+        res.status(200).json(result)        
+    } catch(error){
+        res.status(error.type).json({ type: error.type, message: error.message })
+    }
+    return
 })
 
 app.post('/player', async (req, res) => {
     try{
         const result = await entity.upsertPlayer(req.body)
         res.status(200).json(result)
-        return
     } catch(error){
         res.status(error.type).json({ type: error.type, message: error.message })
-        return
     }
+    return
 })
 
 app.use(async (req, res) => {
