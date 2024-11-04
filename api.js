@@ -54,6 +54,18 @@ app.post('/player', async (req, res) => {
     return
 })
 
+app.post('/score', async (req, res) => {
+    try {
+        await entity.upsertScores(req)
+        await entity.setRanking()
+        const result = await entity.getRanking(req.headers.device)        
+        res.status(200).json({result: result})
+    } catch (error) {
+        res.status(error.type).json({ type: error.type, message: error.message })
+    }
+    return
+})
+
 app.use(async (req, res) => {
     res.status(500).json({type: '500', message: 'unknown or erroneous request' })
 })

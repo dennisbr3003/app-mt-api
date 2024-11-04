@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const Log = require('../classes/Log')
 const Player = require('../models/player')
+const Score = require('../models/score')
 const App = require('../models/app')
 
 const lib = require('../lib/base64')
@@ -56,6 +57,65 @@ class Entity {
         const response = await Player.findOneAndUpdate(filter, update, { new: true, upsert: true }) // new sends back the updated 'record'
         return response
     }
+
+
+    async upsertScores(req) {
+        try{
+            req.body.forEach(async (x) => {
+                x.deviceId = req.headers.device
+                await this.upsertScore(x)
+            })
+        } catch(error){
+            // res.status(error.type).json({ type: error.type, message: error.message })
+            throw error
+        }
+    }
+
+    async upsertScore(score) {
+        const filter = { id: score.id } // find by unique score id
+        const update = { ...score } // update the fields
+        try{
+            await Score.findOneAndUpdate(filter, update, { upsert: true }) // we do not need the updated record here                    
+        } catch (error) {
+            throw error
+        }
+    }
+
+    async setRanking() {
+        
+        // Ranking is determined by -->
+        // 1. score = number of points (higher is better)
+        // 2. time = time used to get the correct answers (lower is better)
+        // 3. streaks = number of times the user answered 10 consecutive questions correctly (higher is better)
+        // 4. name = user name; in case of equal score this is used to determine ranking in alphabetical order
+        // 5. id = GUID; in case of equal score and equal name this is used to determine ranking in alphabetical order
+        
+        // https://thecodebarbarian.com/whats-new-in-mongoose-53-async-iterators.html
+
+        // if you use lean() you get a stripped object that does not have the save method, great for performance but do not use here
+
+        let rank = 1;
+        for await (const score of Score.find().sort({ score: -1, time: 1, streaks: -1, name: 1, id: 1 })) {
+            score.gl_rank = rank            
+            await score.save({ validateBeforeSave: false })
+            rank+=1                        
+        }        
+    }
+
+    async getRanking(deviceId) {
+                
+        // if you use lean after you just made an update you get the old document version. Do not use this after an update
+
+        const response = []
+        for await (const score of Score.find({deviceId: deviceId})) {
+            const object = {
+                gl_rank: score.gl_rank,
+                id: score.id
+            }
+            response.push(object)
+        }
+        return response
+    }    
 
 }
 
