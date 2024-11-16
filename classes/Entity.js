@@ -39,15 +39,20 @@ class Entity {
     }
 
     async deletePlayer(deviceId) {
-        const decodedDevicedId = decodeBase64Url(deviceId)
         try{
-            const response = await Player.deleteOne({ deviceId: decodedDevicedId })
+            const response = await Player.deleteOne({ deviceId: deviceId })
             if(response.deletedCount!==0) {
-                await deleteScores(decodedDevicedId)
-                return {deleted: decodedDevicedId} 
+                await this.deleteScores(deviceId)
+                return {deleted: deviceId} 
             }    
-            else return {deleted: 'none'}            
+            else throw {type: 404, message: 'Delete failed - document not found'}              
         } catch (error) { throw error}
+    }
+
+    async deleteScores(deviceId) {
+        try{
+            await Score.deleteMany({ deviceId: deviceId })
+        } catch (error) { throw error }
     }
 
     async getApp(appId) {
@@ -118,16 +123,6 @@ class Entity {
         }
         return response
     }    
-
-    async deleteScores(deviceId) {
-        try{
-            for await (const score of Score.find({deviceId: deviceId}).lean()) {
-                Score.findByIdAndDelete(score._id)
-            }
-        }catch(error) {
-            throw error
-        }
-    }
 
 }
 
